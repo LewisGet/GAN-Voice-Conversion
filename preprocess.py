@@ -3,22 +3,39 @@ import time
 
 from speech_tools import *
 
+self_database = False
+
 dataset = 'vcc2018'
-src_speaker = 'VCC2SF3'
-trg_speaker = 'VCC2TM1'
+if self_database:
+    src_speaker = 'b'
+    trg_speaker = 'a'
+else:
+    src_speaker = 'VCC2SF4'
+    trg_speaker = 'VCC2TF2'
 
 data_dir = os.path.join('datasets', dataset)
 exp_dir = os.path.join('experiments', dataset)
 
-train_A_dir = os.path.join(data_dir, 'vcc2018_training', src_speaker)
-train_B_dir = os.path.join(data_dir, 'vcc2018_training', trg_speaker)
+if self_database:
+    train_A_dir = os.path.join(data_dir, 'training', src_speaker)
+    train_B_dir = os.path.join(data_dir, 'training', trg_speaker)
+else:
+    train_A_dir = os.path.join(data_dir, 'vcc2018_training', src_speaker)
+    train_B_dir = os.path.join(data_dir, 'vcc2018_training', trg_speaker)
+
+print (train_A_dir, train_B_dir)
+
 exp_A_dir = os.path.join(exp_dir, src_speaker)
 exp_B_dir = os.path.join(exp_dir, trg_speaker)
 
 os.makedirs(exp_A_dir, exist_ok=True)
 os.makedirs(exp_B_dir, exist_ok=True)
 
-sampling_rate = 22050
+if self_database:
+    sampling_rate = 16000
+else:
+    sampling_rate = 22050
+
 num_mcep = 36
 frame_period = 5.0
 n_frames = 128

@@ -5,15 +5,15 @@ from models.cyclegan_vc2 import CycleGAN2
 from speech_tools import *
 
 dataset = 'vcc2018'
-src_speaker = 'VCC2SF3'
-trg_speaker = 'VCC2TM1'
-model_name = 'cyclegan_vc2'
+src_speaker = 'b'
+trg_speaker = 'a'
+model_name = 'cyclegan_vc2_two_step'
 
 data_dir = os.path.join('datasets', dataset)
 exp_dir = os.path.join('experiments', dataset)
 
-eval_A_dir = os.path.join(data_dir, 'vcc2018_evaluation', src_speaker)
-eval_B_dir = os.path.join(data_dir, 'vcc2018_reference', trg_speaker)
+eval_A_dir = os.path.join(data_dir, 'evaluation', src_speaker)
+eval_B_dir = os.path.join(data_dir, 'reference', trg_speaker)
 exp_A_dir = os.path.join(exp_dir, src_speaker)
 exp_B_dir = os.path.join(exp_dir, trg_speaker)
 
@@ -25,7 +25,7 @@ validation_B_output_dir = os.path.join('experiments', dataset, model_name,
 os.makedirs(validation_A_output_dir, exist_ok=True)
 os.makedirs(validation_B_output_dir, exist_ok=True)
 
-sampling_rate = 22050
+sampling_rate = 16000
 num_mcep = 36
 frame_period = 5.0
 n_frames = 128
@@ -38,7 +38,7 @@ coded_sps_B_norm, coded_sps_B_mean, coded_sps_B_std, log_f0s_mean_B, log_f0s_std
 
 model = CycleGAN2(num_features=num_mcep, batch_size=1, mode='test')
 model.load(
-    filepath=os.path.join('experiments', dataset, model_name, 'checkpoints', '{}_200000.ckpt'.format(model_name)))
+    filepath=os.path.join('experiments', dataset, model_name, 'checkpoints', '{}_160000.ckpt'.format(model_name)))
 
 print('Generating Validation Data B from A...')
 for file in glob.glob(eval_A_dir + '/*.wav'):

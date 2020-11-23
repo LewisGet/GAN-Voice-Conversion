@@ -222,16 +222,23 @@ def sample_train_data(dataset_A, dataset_B, n_frames=128):
     for idx_A, idx_B in zip(train_data_A_idx_subset, train_data_B_idx_subset):
         data_A = dataset_A[idx_A]
         frames_A_total = data_A.shape[1]
-        assert frames_A_total >= n_frames
-        start_A = np.random.randint(frames_A_total - n_frames + 1)
-        end_A = start_A + n_frames
-        train_data_A.append(data_A[:, start_A:end_A])
 
         data_B = dataset_B[idx_B]
         frames_B_total = data_B.shape[1]
-        assert frames_B_total >= n_frames
+
+        if frames_A_total < n_frames:
+            continue
+
+        if frames_B_total < n_frames:
+            continue
+
+        start_A = np.random.randint(frames_A_total - n_frames + 1)
+        end_A = start_A + n_frames
+
         start_B = np.random.randint(frames_B_total - n_frames + 1)
         end_B = start_B + n_frames
+
+        train_data_A.append(data_A[:, start_A:end_A])
         train_data_B.append(data_B[:, start_B:end_B])
 
     train_data_A = np.array(train_data_A)
