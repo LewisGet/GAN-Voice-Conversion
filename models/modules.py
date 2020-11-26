@@ -256,6 +256,8 @@ def Generator212(inputs, dim=24, batch_size=1, reuse=False, scope_name='generato
     # inputs has shape [batch_size, num_features, time]
     # we need to add channel for 2D convolution [batch_size, num_features, time, 1]
     inputs = tf.expand_dims(inputs, -1)
+    downsample_shape = int(dim * 64)
+    upsample_shape = int(int(dim / 2) / 2)
 
     with tf.variable_scope(scope_name) as scope:
         # Discriminator would be reused in CycleGAN
@@ -275,7 +277,7 @@ def Generator212(inputs, dim=24, batch_size=1, reuse=False, scope_name='generato
         d2 = downsample2d_block(inputs=d1, filters=256, kernel_size=[5, 5], strides=[2, 2],
                                 name_prefix='downsample2d_block2_')
 
-        d3 = tf.squeeze(tf.reshape(d2, shape=(batch_size, 1, -1, 2304)), axis=[1], name='d2_reshape')
+        d3 = tf.squeeze(tf.reshape(d2, shape=(batch_size, 1, -1, downsample_shape)), axis=[1], name='d2_reshape')
         resh1 = conv1d_layer(inputs=d3, filters=256, kernel_size=1, strides=1, activation=None, name='resh1_conv')
         resh1_norm = instance_norm_layer(inputs=resh1, activation_fn=None, name='resh1_norm')
 
@@ -286,9 +288,9 @@ def Generator212(inputs, dim=24, batch_size=1, reuse=False, scope_name='generato
         r5 = residual1d_block(inputs=r4, filters=512, kernel_size=3, strides=1, name_prefix='res1d_block5_')
         r6 = residual1d_block(inputs=r5, filters=512, kernel_size=3, strides=1, name_prefix='res1d_block6_')
 
-        resh2 = conv1d_layer(inputs=r6, filters=2304, kernel_size=1, strides=1, activation=None, name='resh2_conv')
+        resh2 = conv1d_layer(inputs=r6, filters=downsample_shape, kernel_size=1, strides=1, activation=None, name='resh2_conv')
         resh2_norm = instance_norm_layer(inputs=resh2, activation_fn=None, name='resh2_norm')
-        resh3 = tf.reshape(tf.expand_dims(resh2_norm, axis=1), shape=(batch_size, 9, -1, 256), name='resh2_reshape')
+        resh3 = tf.reshape(tf.expand_dims(resh2_norm, axis=1), shape=(batch_size, upsample_shape, -1, 256), name='resh2_reshape')
 
         # Upsample
         u1 = upsample2d_block(inputs=resh3, filters=1024, kernel_size=5, strides=1, shuffle_size=2,
