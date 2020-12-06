@@ -210,10 +210,10 @@ class CycleGAN2(object):
 
     def train_discriminator_b_to_a(self, input_B, discriminator_learning_rate):
 
-        fa = self.sess.run(self.generation_A, feed_dict={self.input_B_real: input_B})
+        fa, fbc = self.sess.run([self.generation_A, self.cycle_B], feed_dict={self.input_B_real: input_B})
         fb = self.sess.run(self.generation_B, feed_dict={self.input_A_real: fa})
 
-        discriminator_loss_B, _ = self.sess.run(
+        loss, _ = self.sess.run(
             [
                 self.discriminator_loss_B,
                 self.discriminator_b_to_a_optimizer
@@ -222,9 +222,18 @@ class CycleGAN2(object):
                        self.discriminator_learning_rate: discriminator_learning_rate,
                        self.input_A_fake: fa, self.input_B_fake: fb})
 
+        loss_c, _ = self.sess.run(
+            [
+                self.discriminator_loss_B,
+                self.discriminator_b_to_a_optimizer
+            ],
+            feed_dict={self.input_B_real: input_B,
+                       self.discriminator_learning_rate: discriminator_learning_rate,
+                       self.input_A_fake: fa, self.input_B_fake: fbc})
+
         self.train_step += 1
 
-        return discriminator_loss_B
+        return loss, loss_c
 
     def test(self, inputs, direction):
 

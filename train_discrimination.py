@@ -64,10 +64,10 @@ while iteration <= num_iterations:
         start = i * mini_batch_size
         end = (i + 1) * mini_batch_size
 
-        b_loss = model.train_discriminator_b_to_a(input_B=dataset_B[start: end], discriminator_learning_rate=discriminator_learning_rate)
+        loss, loss_c = model.train_discriminator_b_to_a(input_B=dataset_B[start: end], discriminator_learning_rate=discriminator_learning_rate)
 
         if iteration % 10 == 0:
-            print (b_loss)
+            print (loss, loss_c)
 
         if iteration % 2500 == 0:
             print('Checkpointing...')
