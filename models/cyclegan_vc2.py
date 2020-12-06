@@ -176,6 +176,9 @@ class CycleGAN2(object):
         self.discriminator_optimizer = tf.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate,
                                                               beta1=0.5).minimize(self.discriminator_loss,
                                                                                   var_list=self.discriminator_vars)
+
+        self.discriminator_b_to_a_optimizer = tf.train.AdamOptimizer(learning_rate=self.discriminator_learning_rate, beta1=0.5).minimize(self.discriminator_loss_B)
+
         self.generator_optimizer = tf.train.AdamOptimizer(learning_rate=self.generator_learning_rate,
                                                           beta1=0.5).minimize(self.generator_loss,
                                                                               var_list=self.generator_vars)
@@ -204,6 +207,24 @@ class CycleGAN2(object):
         self.train_step += 1
 
         return generator_loss, discriminator_loss
+
+    def train_discriminator_b_to_a(self, input_B, discriminator_learning_rate):
+
+        fa = self.sess.run(self.generation_A, feed_dict={self.input_B_real: input_B})
+        fb = self.sess.run(self.generation_B, feed_dict={self.input_A_real: fa})
+
+        discriminator_loss_B, _ = self.sess.run(
+            [
+                self.discriminator_loss_B,
+                self.discriminator_b_to_a_optimizer
+            ],
+            feed_dict={self.input_B_real: input_B,
+                       self.discriminator_learning_rate: discriminator_learning_rate,
+                       self.input_A_fake: fa, self.input_B_fake: fb})
+
+        self.train_step += 1
+
+        return discriminator_loss_B
 
     def test(self, inputs, direction):
 
