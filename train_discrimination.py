@@ -57,21 +57,33 @@ if start_at is not 0:
 iteration = start_at
 
 while iteration <= num_iterations:
+    dataset_A = sample_train_data_single(dataset=coded_sps_A_norm, n_frames=n_frames)
     dataset_B = sample_train_data_single(dataset=coded_sps_B_norm, n_frames=n_frames)
-    n_samples = dataset_B.shape[0]
+    n_samples_A = dataset_A.shape[0]
+    n_samples_B = dataset_B.shape[0]
 
-    for i in range(n_samples // mini_batch_size):
+    for i in range(n_samples_B // mini_batch_size):
         start = i * mini_batch_size
         end = (i + 1) * mini_batch_size
 
-        loss, loss_c = model.train_discriminator_b_to_a(input_B=dataset_B[start: end], discriminator_learning_rate=discriminator_learning_rate)
+        loss_ba, loss_ba_c = model.train_discriminator_b_to_a(input_B=dataset_B[start: end], discriminator_learning_rate=discriminator_learning_rate)
 
-        if iteration % 10 == 0:
-            print (loss, loss_c)
+    for i in range(n_samples_A // mini_batch_size):
+        start = i * mini_batch_size
+        end = (i + 1) * mini_batch_size
 
-        if iteration % 2500 == 0:
-            print('Checkpointing...')
-            model.save(directory=os.path.join('experiments', dataset, model_name, 'checkpoints'),
-                       filename='{}_{}.ckpt'.format(model_name, iteration))
+        loss_ab, loss_ab_c = model.train_discriminator_a_to_b(input_A=dataset_A[start: end], discriminator_learning_rate=discriminator_learning_rate)
 
-        iteration += 1
+    if iteration % 10 == 0:
+        print ("loss b to a:")
+        print (loss_ba, loss_ba_c)
+
+        print ("loss a to b:")
+        print (loss_ab, loss_ab_c)
+
+    if iteration % 2500 == 0:
+        print('Checkpointing...')
+        model.save(directory=os.path.join('experiments', dataset, model_name, 'checkpoints'),
+                   filename='{}_{}.ckpt'.format(model_name, iteration))
+
+    iteration += 1
