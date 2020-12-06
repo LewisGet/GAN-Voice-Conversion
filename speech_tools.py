@@ -245,3 +245,27 @@ def sample_train_data(dataset_A, dataset_B, n_frames=128):
     train_data_B = np.array(train_data_B)
 
     return train_data_A, train_data_B
+
+def sample_train_data_single(dataset, n_frames=128):
+    num_samples = len(dataset)
+    train_data_idx = np.arange(len(dataset))
+    np.random.shuffle(train_data_idx)
+    train_data_idx_subset = train_data_idx[:num_samples]
+
+    train_data = list()
+
+    for idx in train_data_idx_subset:
+        data = dataset[idx]
+        frames_total = data.shape[1]
+
+        if frames_total < n_frames:
+            continue
+
+        start = np.random.randint(frames_total - n_frames + 1)
+        end = start + n_frames
+
+        train_data.append(data[:, start:end])
+
+    train_data = np.array(train_data)
+
+    return train_data
