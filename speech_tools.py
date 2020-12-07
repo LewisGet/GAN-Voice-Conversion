@@ -8,11 +8,13 @@ from tqdm import tqdm
 
 def load_wavs(wav_dir, sr):
     wavs = list()
+    file_names = list()
     for file in glob.glob(wav_dir + '/*.wav'):
         wav, _ = librosa.load(file, sr=sr, mono=True)
         wavs.append(wav)
+        file_names.append(file)
 
-    return wavs
+    return file_names, wavs
 
 
 def world_decompose(wav, fs, frame_period=5.0):
@@ -43,14 +45,26 @@ def world_decode_spectral_envelop(coded_sp, fs):
     return decoded_sp
 
 
-def world_encode_data(wavs, fs, frame_period=5.0, coded_dim=24):
+def world_encode_data(wavs, fs, frame_period=5.0, coded_dim=24, decode=None):
     f0s = list()
     timeaxes = list()
     sps = list()
     aps = list()
     coded_sps = list()
 
-    for wav in tqdm(wavs):
+    wavs_in_size = list()
+    name_in_size = list()
+    max_wav_size = 50 * 10000
+
+    for wav, name in zip(wavs, decode):
+        for i in range(0, len(wav), int(max_wav_size / 2)):
+            min_index, max_index = i, i + max_wav_size
+            tmp = wav[min_index:max_index]
+            wavs_in_size.append(tmp)
+            name_in_size.append("\r" + name + " : " + str(min_index) + " - " + str(max_index) + " total len: " + str(len(tmp)))
+
+    for wav, name in tqdm(zip(wavs_in_size, name_in_size)):
+        print (name)
         f0, timeaxis, sp, ap = world_decompose(wav=wav, fs=fs, frame_period=frame_period)
         coded_sp = world_encode_spectral_envelop(sp=sp, fs=fs, dim=coded_dim)
         f0s.append(f0)
@@ -208,13 +222,26 @@ def load_pickle(path):
 
 
 def sample_train_data(dataset_A, dataset_B, n_frames=128):
-    num_samples = min(len(dataset_A), len(dataset_B))
+    num_samples_min = min(len(dataset_A), len(dataset_B))
+    num_samples_max = max(len(dataset_A), len(dataset_B))
+    num_samples_diff = num_samples_max - num_samples_min
+
     train_data_A_idx = np.arange(len(dataset_A))
     train_data_B_idx = np.arange(len(dataset_B))
     np.random.shuffle(train_data_A_idx)
     np.random.shuffle(train_data_B_idx)
-    train_data_A_idx_subset = train_data_A_idx[:num_samples]
-    train_data_B_idx_subset = train_data_B_idx[:num_samples]
+
+    diff_index = [random.randint(0, num_samples_min) for i in range(num_samples_diff)]
+
+    if len(dataset_A) == num_samples_min:
+        index = train_data_A_idx.tolist()
+        train_data_A_idx = np.array(index + diff_index)
+    else:
+        index = train_data_B_idx.tolist()
+        train_data_B_idx = np.array(index + diff_index)
+
+    train_data_A_idx_subset = train_data_A_idx[:num_samples_max]
+    train_data_B_idx_subset = train_data_B_idx[:num_samples_max]
 
     train_data_A = list()
     train_data_B = list()

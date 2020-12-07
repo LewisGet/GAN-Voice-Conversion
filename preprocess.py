@@ -3,25 +3,17 @@ import time
 
 from speech_tools import *
 
-self_database = False
+self_database = True
 
 dataset = 'vcc2018'
-if self_database:
-    src_speaker = 'b'
-    trg_speaker = 'a'
-else:
-    src_speaker = 'VCC2SF4'
-    trg_speaker = 'VCC2TF2'
+src_speaker = 'ub'
+trg_speaker = 'ua'
 
 data_dir = os.path.join('datasets', dataset)
 exp_dir = os.path.join('experiments', dataset)
 
-if self_database:
-    train_A_dir = os.path.join(data_dir, 'training', src_speaker)
-    train_B_dir = os.path.join(data_dir, 'training', trg_speaker)
-else:
-    train_A_dir = os.path.join(data_dir, 'vcc2018_training', src_speaker)
-    train_B_dir = os.path.join(data_dir, 'vcc2018_training', trg_speaker)
+train_A_dir = os.path.join(data_dir, 'training', src_speaker)
+train_B_dir = os.path.join(data_dir, 'training', trg_speaker)
 
 print (train_A_dir, train_B_dir)
 
@@ -31,12 +23,10 @@ exp_B_dir = os.path.join(exp_dir, trg_speaker)
 os.makedirs(exp_A_dir, exist_ok=True)
 os.makedirs(exp_B_dir, exist_ok=True)
 
-if self_database:
-    sampling_rate = 16000
-else:
-    sampling_rate = 22050
+sampling_rate = 16000
 
-num_mcep = 36
+#num_mcep = 36
+num_mcep = 52
 frame_period = 5.0
 n_frames = 128
 
@@ -44,14 +34,14 @@ print('Loading Wavs...')
 
 start_time = time.time()
 
-wavs_A = load_wavs(wav_dir=train_A_dir, sr=sampling_rate)
-wavs_B = load_wavs(wav_dir=train_B_dir, sr=sampling_rate)
+A_names, wavs_A = load_wavs(wav_dir=train_A_dir, sr=sampling_rate)
+B_names, wavs_B = load_wavs(wav_dir=train_B_dir, sr=sampling_rate)
 
 print('Extracting acoustic features...')
 
-f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data(wavs=wavs_A, fs=sampling_rate,
+f0s_A, timeaxes_A, sps_A, aps_A, coded_sps_A = world_encode_data(wavs=wavs_A, fs=sampling_rate, decode=A_names,
                                                                  frame_period=frame_period, coded_dim=num_mcep)
-f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data(wavs=wavs_B, fs=sampling_rate,
+f0s_B, timeaxes_B, sps_B, aps_B, coded_sps_B = world_encode_data(wavs=wavs_B, fs=sampling_rate, decode=B_names,
                                                                  frame_period=frame_period, coded_dim=num_mcep)
 
 print('Calculating F0 statistics...')
