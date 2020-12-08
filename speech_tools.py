@@ -4,6 +4,7 @@ import pyworld
 import glob
 import pickle
 from tqdm import tqdm
+import random
 
 
 def load_wavs(wav_dir, sr):
@@ -231,7 +232,7 @@ def sample_train_data(dataset_A, dataset_B, n_frames=128):
     np.random.shuffle(train_data_A_idx)
     np.random.shuffle(train_data_B_idx)
 
-    diff_index = [random.randint(0, num_samples_min) for i in range(num_samples_diff)]
+    diff_index = [random.randint(0, num_samples_min - 1) for i in range(num_samples_diff)]
 
     if len(dataset_A) == num_samples_min:
         index = train_data_A_idx.tolist()
