@@ -11,6 +11,13 @@ model_name = 'cyclegan_vc2_two_step'
 
 data_dir = os.path.join('datasets', dataset)
 exp_dir = os.path.join('experiments', dataset)
+model_dir = os.path.join(exp_dir, model_name, 'checkpoints')
+all_models = glob.glob(os.path.join(model_dir, model_name + "_*.ckpt*"))
+
+def get_train_step_by_name(str):
+    return int(str.split(os.path.join(model_dir, model_name + "_"))[1].split(".ckpt")[0])
+
+last_train_model_step = max([get_train_step_by_name(i) for i in all_models])
 
 eval_A_dir = os.path.join(data_dir, 'evaluation', src_speaker)
 eval_B_dir = os.path.join(data_dir, 'reference', trg_speaker)
@@ -29,6 +36,7 @@ sampling_rate = 16000
 num_mcep = 36
 frame_period = 5.0
 n_frames = 128
+model_step = last_train_model_step
 
 print('Loading cached data...')
 coded_sps_A_norm, coded_sps_A_mean, coded_sps_A_std, log_f0s_mean_A, log_f0s_std_A = load_pickle(
@@ -38,7 +46,7 @@ coded_sps_B_norm, coded_sps_B_mean, coded_sps_B_std, log_f0s_mean_B, log_f0s_std
 
 model = CycleGAN2(num_features=num_mcep, batch_size=1, mode='test')
 model.load(
-    filepath=os.path.join('experiments', dataset, model_name, 'checkpoints', '{}_160000.ckpt'.format(model_name)))
+    filepath=os.path.join('experiments', dataset, model_name, 'checkpoints', '{}_{}.ckpt'.format(model_name, str(model_step))))
 
 print('Generating Validation Data B from A...')
 for file in glob.glob(eval_A_dir + '/*.wav'):
